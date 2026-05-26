@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>클라이맥스 사내 FAQ 챗봇</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --climax-purple: #35105f;
+      --climax-purple-2: #5f22a8;
+      --climax-purple-3: #7c3aed;
+      --soft-purple: #f3ecff;
+      --soft-purple-2: #faf7ff;
+      --line: #e7ddf8;
+      --text: #241337;
+      --muted: #6b5b7b;
+      --white: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #fbf9ff 0%, #f5f1fb 100%);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1260px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 22px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--climax-purple) 0%, var(--climax-purple-2) 58%, #2b0b4d 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 22px 28px;
+      box-shadow: 0 16px 44px rgba(53, 16, 95, 0.28);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-box {
+      width: 150px;
+      min-width: 150px;
+      height: 62px;
+      background: rgba(255,255,255,0.96);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+    }
+
+    .logo-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+    }
+
+    header p {
+      margin: 0;
+      color: #eee6ff;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .security-note {
+      margin-top: 12px;
+      padding: 11px 14px;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      font-size: 13px;
+      color: #f7f1ff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 18px;
+      flex: 1;
+    }
+
+    .panel, .workspace {
+      background: rgba(255,255,255,0.94);
+      border-radius: 26px;
+      box-shadow: 0 12px 34px rgba(45, 21, 78, 0.09);
+      border: 1px solid var(--line);
+    }
+
+    .panel {
+      padding: 18px;
+      height: fit-content;
+      position: sticky;
+      top: 18px;
+    }
+
+    .panel h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+      color: var(--climax-purple);
+    }
+
+    .nav-btn, .category-btn {
+      width: 100%;
+      border: 0;
+      background: #f7f2ff;
+      color: #40225d;
+      padding: 11px 12px;
+      border-radius: 15px;
+      text-align: left;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn:hover, .nav-btn.active, .category-btn:hover, .category-btn.active {
+      background: linear-gradient(135deg, var(--climax-purple), var(--climax-purple-3));
+      color: white;
+      box-shadow: 0 8px 18px rgba(80, 32, 134, 0.20);
+    }
+
+    .side-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .quick-item {
+      display: block;
+      width: 100%;
+      border: 1px solid #eadffc;
+      background: white;
+      text-align: left;
+      padding: 9px 10px;
+      color: #4b3663;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.35;
+      border-radius: 14px;
+      margin-bottom: 7px;
+    }
+
+    .quick-item:hover {
+      border-color: var(--climax-purple-3);
+      color: var(--climax-purple);
+      background: #fbf8ff;
+    }
+
+    .workspace {
+      min-height: 690px;
+      max-height: calc(100vh - 170px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view {
+      display: none;
+      padding: 22px;
+      flex: 1;
+    }
+
+    .view.active { display: block; }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      height: 100%;
+    }
+
+    .chat-card, .info-card, .faq-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(53, 16, 95, 0.06);
+    }
+
+    .chat-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: calc(100vh - 230px);
+      min-height: 560px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 22px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 14px;
+    }
+
+    .message.user { justify-content: flex-end; }
+
+    .bubble {
+      max-width: 82%;
+      padding: 14px 16px;
+      border-radius: 20px;
+      line-height: 1.58;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .bot .bubble {
+      background: #f7f2ff;
+      border: 1px solid #eadffc;
+      border-top-left-radius: 7px;
+    }
+
+    .user .bubble {
+      background: linear-gradient(135deg, var(--climax-purple), var(--climax-purple-3));
+      color: white;
+      border-top-right-radius: 7px;
+      box-shadow: 0 10px 22px rgba(80, 32, 134, 0.20);
+    }
+
+    .meta {
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid #e4d7f7;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      background: #fcfaff;
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+    }
+
+    input {
+      flex: 1;
+      border: 1px solid #dcccf2;
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-size: 15px;
+      outline: none;
+      background: white;
+    }
+
+    input:focus {
+      border-color: var(--climax-purple-3);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.10);
+    }
+
+    .send-btn, .clear-btn {
+      border: 0;
+      border-radius: 18px;
+      padding: 0 18px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--climax-purple), var(--climax-purple-3));
+      color: white;
+    }
+
+    .clear-btn {
+      background: #ede4fb;
+      color: #4b2b6d;
+    }
+
+    .info-card {
+      padding: 20px;
+      height: fit-content;
+    }
+
+    .info-card h2, .view-title {
+      margin: 0 0 14px;
+      color: var(--climax-purple-3);
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .view-desc {
+      margin: -6px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .account-table-wrap {
+      border: 1px solid #eadffc;
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f3ecff;
+      color: var(--climax-purple);
+      text-align: left;
+      padding: 12px 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    td {
+      border-top: 1px solid #f0e8fb;
+      padding: 11px 12px;
+      vertical-align: middle;
+      word-break: break-all;
+    }
+
+    tr:hover td { background: #fbf8ff; }
+
+    .notice-box {
+      margin-top: 14px;
+      padding: 14px;
+      background: #f3ecff;
+      color: #4b2b6d;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .answer-account-card {
+      margin-top: 10px;
+      border: 1px solid #dfd0f3;
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+      min-width: 340px;
+    }
+
+    .answer-account-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      border-bottom: 1px solid #eee5fb;
+    }
+
+    .answer-account-row:last-child { border-bottom: 0; }
+
+    .answer-account-label {
+      background: #f3ecff;
+      font-weight: 800;
+      color: var(--climax-purple);
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .answer-account-value {
+      padding: 11px 12px;
+      word-break: break-all;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .faq-tools {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .faq-tools input {
+      height: 44px;
+      border-radius: 15px;
+    }
+
+    .faq-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .faq-item {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .faq-item-title {
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .faq-item-answer {
+      color: #4d405c;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #f3ecff;
+      color: var(--climax-purple-3);
+      border: 1px solid #e3d5f7;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .category-card {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 20px;
+      padding: 16px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .category-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(53, 16, 95, 0.08);
+      border-color: #cdb8ee;
+    }
+
+    .category-card-title {
+      font-weight: 900;
+      color: var(--climax-purple);
+      margin-bottom: 6px;
+    }
+
+    .category-card-count {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1040px) {
+      .home-grid { grid-template-columns: 1fr; }
+      .info-card { order: -1; }
+      .category-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 860px) {
+      .app { padding: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; }
+      .chat-card { min-height: 560px; }
+      .bubble { max-width: 94%; }
+      .brand-row { align-items: flex-start; flex-direction: column; }
+      .logo-box { width: 140px; }
+      .category-grid { grid-template-columns: 1fr; }
+      .answer-account-card { min-width: 0; }
+      .input-area { flex-wrap: wrap; }
+      .send-btn, .clear-btn { height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand-row">
+        <div class="logo-box">
+          <img src="data:image/jpeg;base64,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" alt="CLIMAX STUDIO 로고" />
+        </div>
+        <div>
+          <h1>클라이맥스 사내 FAQ 챗봇</h1>
+          <p>와이파이, 열쇠 위치, 회의실 예약, OTT 계정처럼 자주 묻는 질문을 빠르게 확인할 수 있습니다.</p>
+        </div>
+      </div>
+      <div class="security-note">보안상 계정 정보와 내부 위치 정보가 포함되어 있으므로 회사 구성원만 사용하는 환경에서 관리해주세요.</div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel">
+        <h2>메뉴</h2>
+        <button class="nav-btn active" data-view="homeView">⌂ 홈</button>
+        <button class="nav-btn" data-view="ottView">▶ OTT 계정 정보</button>
+        <button class="nav-btn" data-view="faqView">☷ 전체 FAQ 리스트</button>
+
+        <div class="side-section">
+          <h2>카테고리</h2>
+          <button class="category-btn active" data-category="전체">전체</button>
+          <button class="category-btn" data-category="시설/출입">시설/출입</button>
+          <button class="category-btn" data-category="와이파이/계정">와이파이/계정</button>
+          <button class="category-btn" data-category="OTT 계정">OTT 계정</button>
+          <button class="category-btn" data-category="비품/열쇠/카드">비품/열쇠/카드</button>
+          <button class="category-btn" data-category="회사 기본 정보">회사 기본 정보</button>
+          <button class="category-btn" data-category="굿즈/물품 위치">굿즈/물품 위치</button>
+          <button class="category-btn" data-category="업무 시스템">업무 시스템</button>
+        </div>
+
+        <div class="side-section">
+          <h2>자주 묻는 질문</h2>
+          <button class="quick-item">5층 와이파이 비밀번호는?</button>
+          <button class="quick-item">마스터카드 어디 있어요?</button>
+          <button class="quick-item">회의실 예약 시트는 어디서 봐요?</button>
+          <button class="quick-item">출입문 비밀번호는?</button>
+          <button class="quick-item">공용메일 비밀번호는?</button>
+          <button class="quick-item">넷플릭스 계정 알려줘</button>
+          <button class="quick-item">티빙 아이디 비번</button>
+          <button class="quick-item">조인스넷 기안 결재 담당자는?</button>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <div class="view active" id="homeView">
+          <div class="home-grid">
+            <section class="chat-card">
+              <div class="messages" id="messages"></div>
+              <form class="input-area" id="chatForm">
+                <input id="questionInput" type="text" placeholder="예: 넷플릭스 계정 알려줘 / 4층 와이파이 비번 뭐예요?" autocomplete="off" />
+                <button class="send-btn" type="submit">질문</button>
+                <button class="clear-btn" type="button" id="clearBtn">초기화</button>
+              </form>
+            </section>
+
+            <aside class="info-card">
+              <h2>OTT 계정 정보</h2>
+              <p class="view-desc">필요한 서비스명을 질문하면 계정 정보가 답변됩니다.</p>
+              <div class="account-table-wrap">
+                <table id="homeOttTable"></table>
+              </div>
+              <div class="notice-box">
+                ※ 계정 정보는 사내 구성원에게만 공유해주세요.<br />
+                ※ 아이디가 contact@climaxstudio.net이 아닌 서비스가 일부 있습니다.
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="view" id="ottView">
+          <h2 class="view-title">OTT 계정 정보</h2>
+          <p class="view-desc">서비스명, 아이디, 비밀번호를 한 번에 확인할 수 있습니다. 검색창에 서비스명을 입력해도 됩니다.</p>
+          <div class="faq-tools">
+            <input id="ottSearch" type="text" placeholder="예: 넷플릭스, 티빙, 미리캔버스" />
+          </div>
+          <div class="account-table-wrap">
+            <table id="ottFullTable"></table>
+          </div>
+          <div class="notice-box">
+            ※ 외부 공유 금지 / 비밀번호 변경 필요 시 경영지원팀에 문의해주세요.
+          </div>
+        </div>
+
+        <div class="view" id="faqView">
+          <h2 class="view-title">전체 FAQ 리스트</h2>
+          <p class="view-desc">등록된 질문을 카테고리별로 모아볼 수 있습니다.</p>
+          <div class="category-grid" id="categoryGrid"></div>
+          <div class="faq-tools">
+            <input id="faqSearch" type="text" placeholder="FAQ 검색: 와이파이, 카드, 회의실, 조인스넷 등" />
+          </div>
+          <div class="faq-list" id="faqList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function createAccountFaq(service, id, password, aliases = []) {
+      return {
+        category: "OTT 계정",
+        question: `${service} 계정 정보`,
+        aliases: [service, `${service} 아이디`, `${service} 비밀번호`, `${service} 비번`, `${service} 로그인`, ...aliases],
+        answerType: "account",
+        service,
+        id,
+        password,
+        answer: `${service} 계정 정보는 아래와 같습니다.\n아이디: ${id}\n비밀번호: ${password}\n보안상 계정 정보는 사내 구성원에게만 공유해주세요.`
+      };
+    }
+
+    const faqData = [
+      { category: "와이파이/계정", question: "5층 와이파이 비밀번호", aliases: ["5층 와이파이", "5층 wifi", "오층 와이파이", "5층 인터넷", "5층 비번"], answer: "5층 와이파이는 아래 정보로 접속하시면 됩니다.\n\nID: KT_GIGA_(Mesh_)4A1D\nPW: acf14zb194" },
+      { category: "와이파이/계정", question: "4층 와이파이 비밀번호", aliases: ["4층 와이파이", "4층 wifi", "사층 와이파이", "4층 인터넷", "4층 비번"], answer: "4층 와이파이는 아래 정보로 접속하시면 됩니다.\n\nID: KT_GIGA_(Mesh_)4A22\nPW: bcf14zb195" },
+      { category: "와이파이/계정", question: "지하2층 와이파이 비밀번호", aliases: ["지하2층 와이파이", "지하 와이파이", "b2 와이파이", "지하2층 wifi", "지하 인터넷"], answer: "지하2층 와이파이는 아래 정보로 접속하시면 됩니다.\n\nID: KT_GIGA_GLIMAX, KT_GIGA_5G_CLIMAX\nPW: climax123456" },
+      { category: "와이파이/계정", question: "공용메일 비밀번호", aliases: ["공용메일 비번", "공용 메일 비밀번호", "공용 구글 메일", "공용메일 로그인"], answer: "공용메일 비밀번호는 아래와 같습니다.\n\nPW: 클라이맥스!" },
+      { category: "시설/출입", question: "출입문 비밀번호", aliases: ["출입문 비번", "문 비밀번호", "현관 비밀번호", "출입 비번"], answer: "출입문 비밀번호는 아래와 같습니다.\n\n종1234" },
+      { category: "시설/출입", question: "캡스 번호", aliases: ["캡스 연락처", "캡스 전화번호", "보안업체 번호", "캡스 문의"], answer: "캡스 번호는 1800-6400입니다.\n전화 연결 시 계약자명은 '빌라진', 주소를 말씀하시면 됩니다." },
+      { category: "회사 기본 정보", question: "팩스번호", aliases: ["팩스 번호", "회사 팩스", "fax"], answer: "회사 팩스번호는 02-517-5666입니다." },
+      { category: "회사 기본 정보", question: "회사번호", aliases: ["회사 전화번호", "대표번호", "사무실 번호", "회사 연락처"], answer: "회사번호는 070-8871-1881입니다." },
+      { category: "회사 기본 정보", question: "액자 업체 번호", aliases: ["액자번호", "액자 문의", "대경토탈", "액자 연락처"], answer: "액자 관련 업체는 대경토탈입니다.\n연락처: 02-2271-2877" },
+      { category: "회사 기본 정보", question: "화환 신청", aliases: ["화환", "화환 요청", "화환 보내기", "화환 신청 방법"], answer: "화환 신청은 경영지원팀 권가이에게 바로 연락해주세요." },
+      { category: "비품/열쇠/카드", question: "법인체크카드 위치", aliases: ["법인체크 카드", "법인카드 위치", "체크카드 어디", "법카 어디"], answer: "법인체크카드는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있습니다.\n사용 후에는 기존 위치에 다시 보관 부탁드립니다." },
+      { category: "비품/열쇠/카드", question: "마스터카드 위치", aliases: ["마스터카드 어디", "마스터 카드 위치", "마스터카드", "해외카드"], answer: "마스터카드는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있거나, 4층 우편함에 보관되어 있습니다.\n사용 후에는 기존 위치에 다시 보관 부탁드립니다." },
+      { category: "비품/열쇠/카드", question: "인터넷 열쇠 위치", aliases: ["인터넷 열쇠", "인터넷키", "통신 열쇠"], answer: "인터넷 열쇠는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있습니다." },
+      { category: "비품/열쇠/카드", question: "엘리베이터 열쇠 위치", aliases: ["엘베 열쇠", "엘리베이터 키", "엘베키"], answer: "엘리베이터 열쇠는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있습니다." },
+      { category: "비품/열쇠/카드", question: "오토바이 열쇠 위치", aliases: ["오토바이 키", "오토바이열쇠", "바이크 열쇠"], answer: "오토바이 열쇠는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있습니다." },
+      { category: "비품/열쇠/카드", question: "원본하드 열쇠 위치", aliases: ["원본하드 키", "원본 하드 열쇠", "하드 열쇠", "원본하드"], answer: "원본하드 열쇠는 권가이 자리 강아지 사진 옆 하얀색 케이스에 보관되어 있습니다." },
+      { category: "비품/열쇠/카드", question: "주차차단기 열쇠 위치", aliases: ["주차 차단기 열쇠", "주차장 열쇠", "차단기 키", "주차차단기 키"], answer: "주차차단기 열쇠는 4층 우편함에 보관되어 있습니다." },
+      { category: "시설/출입", question: "회의실 예약 시트", aliases: ["회의실 예약", "회의실 시트", "회의실 예약표", "회의실 확인", "회의실 예약 링크"], answer: "회의실 예약은 아래 구글 스프레드시트에서 확인하시면 됩니다.\n\nhttps://docs.google.com/spreadsheets/d/1GuZkGJVKvfL1fvBZyACSqE6C9vnc_NTjlvHDJ3fMvVk/edit?usp=sharing" },
+      { category: "굿즈/물품 위치", question: "모자 위치", aliases: ["모자 어디", "회사 모자", "굿즈 모자"], answer: "모자는 지하2층 트로피 전시되어 있는 책장 아래 서랍장에 위치해 있습니다." },
+      { category: "굿즈/물품 위치", question: "굿즈 위치", aliases: ["LP 위치", "각본집 위치", "블루레이 위치", "굿즈 어디", "lp 각본집 블루레이"], answer: "LP, 각본집, 블루레이, 각종 굿즈는 지하2층 책장 근처 벤치형 수납장 아래 수납장에 위치해 있습니다." },
+      { category: "업무 시스템", question: "조인스넷 기안 시 결재 담당자", aliases: ["조인스넷 결재 담당자", "조인스넷 기안", "조인스넷 참조", "조인스넷 담당"], answer: "조인스넷 기안 시 김민경님(SLL 경영기획팀)을 참조해주시면 됩니다." },
+      createAccountFaq("웨이브", "contact@climaxstudio.net", "climax123!", ["wavve", "웨이브 계정", "웨이브 아이디", "웨이브 비번"]),
+      createAccountFaq("아마존프라임 비디오", "contact@climaxstudio.net", "climax123!", ["아마존", "아마존 프라임", "프라임비디오", "amazon prime", "아마존 비번"]),
+      createAccountFaq("디즈니플러스", "contact@climaxstudio.net", "climax123!", ["디즈니", "디즈니 플러스", "disney", "disney plus", "디즈니 비번"]),
+      createAccountFaq("구글 ZOOM", "contact@climaxstudio.net", "Climax188!", ["구글 줌", "줌", "zoom", "구글 zoom", "줌 계정"]),
+      createAccountFaq("젠스파크", "contact@climaxstudio.net", "클라이맥스!", ["젠스파크 계정", "젠스파크 비번", "genspark"]),
+      createAccountFaq("모두싸인", "contact@climaxstudio.net", "climax123!", ["모두사인", "모두싸인 계정", "모두싸인 비번"]),
+      createAccountFaq("미리캔버스", "gai@climaxstudio.net", "climax188", ["미리 캔버스", "미리캔버스 계정", "미리캔버스 비번", "miricanvas"]),
+      createAccountFaq("넷플릭스", "contact@climaxstudio.net", "climax123!", ["넷플", "netflix", "넷플릭스 계정", "넷플릭스 비번"]),
+      createAccountFaq("애플tv", "contact@climaxstudio.net", "Climax1234!", ["애플티비", "애플 tv", "apple tv", "애플 계정", "애플tv 비번"]),
+      createAccountFaq("티빙", "climax", "climax123!", ["tving", "티빙 계정", "티빙 비번"]),
+      createAccountFaq("왓챠", "contact@climaxstudio.net", "스튜디오123!", ["watcha", "왓챠 계정", "왓챠 비번"]),
+      createAccountFaq("쿠팡플레이", "gai@climaxstudio.net", "climax12!", ["쿠팡", "coupang play", "쿠팡 플레이", "쿠팡플레이 비번"]),
+      createAccountFaq("IMDB PRO", "contact@climaxstudio.net", "cllmax123!", ["imdb", "imdbpro", "아이엠디비", "imdb pro 계정"]),
+      createAccountFaq("비메오", "contact@climaxstudio.net", "studio12!", ["vimeo", "비메오 계정", "비메오 비번"]),
+      createAccountFaq("씨네21", "contact@climaxstudio.net", "gai12345", ["씨네 21", "cine21", "씨네21 계정", "씨네21 비번"]),
+      createAccountFaq("드라마박스", "contact@climaxstudio.net", "클라이맥스!", ["드라마 박스", "dramabox", "드라마박스 계정"]),
+      createAccountFaq("비글루", "contact@climaxstudio.net", "클라이맥스!", ["비 글루", "bigloo", "비글루 계정"])
+    ];
+
+    const ottData = faqData.filter(item => item.category === "OTT 계정");
+    const messagesEl = document.getElementById("messages");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("questionInput");
+    const clearBtn = document.getElementById("clearBtn");
+    const categoryButtons = document.querySelectorAll(".category-btn");
+    const navButtons = document.querySelectorAll(".nav-btn");
+    const quickItems = document.querySelectorAll(".quick-item");
+    const faqSearch = document.getElementById("faqSearch");
+    const ottSearch = document.getElementById("ottSearch");
+
+    let selectedCategory = "전체";
+
+    function normalize(text) {
+      return String(text).toLowerCase()
+        .replace(/[\s?？!！.,/\\()\[\]{}:;~`'"“”‘’_-]/g, "")
+        .replace(/와파/g, "와이파이")
+        .replace(/wifi/g, "와이파이")
+        .replace(/비번/g, "비밀번호")
+        .replace(/엘베/g, "엘리베이터")
+        .replace(/법카/g, "법인카드")
+        .replace(/넷플/g, "넷플릭스")
+        .replace(/애플티비/g, "애플tv");
+    }
+
+    function scoreFaq(userQuestion, faq) {
+      const query = normalize(userQuestion);
+      const texts = [faq.question, ...faq.aliases, faq.category].map(normalize);
+      let score = 0;
+      for (const text of texts) {
+        if (text === query) score += 100;
+        if (text.includes(query) || query.includes(text)) score += 45;
+        const queryTokens = query.match(/[가-힣a-z0-9]+/g) || [];
+        const textTokens = text.match(/[가-힣a-z0-9]+/g) || [];
+        queryTokens.forEach(token => { if (token.length >= 2 && text.includes(token)) score += 12; });
+        textTokens.forEach(token => { if (token.length >= 2 && query.includes(token)) score += 8; });
+      }
+      if (selectedCategory !== "전체" && faq.category === selectedCategory) score += 12;
+      if (selectedCategory !== "전체" && faq.category !== selectedCategory) score -= 20;
+      return score;
+    }
+
+    function findBestAnswer(question) {
+      const ranked = faqData.map(faq => ({ faq, score: scoreFaq(question, faq) })).sort((a, b) => b.score - a.score);
+      const best = ranked[0];
+      if (!best || best.score < 18) {
+        const categoryHint = selectedCategory === "전체" ? "" : `\n현재 선택된 카테고리: ${selectedCategory}`;
+        return { faq: null, answer: `아직 등록된 답변을 찾지 못했습니다.${categoryHint}\n\n질문을 조금 다르게 입력해보시거나, 경영지원팀 권가이에게 확인해주세요.`, meta: "검색 결과 없음" };
+      }
+      const suggestions = ranked.slice(1, 4).filter(item => item.score >= 18).map(item => `- ${item.faq.question}`).join("\n");
+      return { faq: best.faq, answer: best.faq.answer, meta: suggestions ? `관련 질문\n${suggestions}` : best.faq.category };
+    }
+
+    function makeAccountCard(faq) {
+      const wrap = document.createElement("div");
+      wrap.className = "answer-account-card";
+      const rows = [
+        ["서비스", faq.service],
+        ["아이디", faq.id],
+        ["비밀번호", faq.password]
+      ];
+      rows.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "answer-account-row";
+        const labelEl = document.createElement("div");
+        labelEl.className = "answer-account-label";
+        labelEl.textContent = label;
+        const valueEl = document.createElement("div");
+        valueEl.className = "answer-account-value";
+        valueEl.textContent = value;
+        row.append(labelEl, valueEl);
+        wrap.appendChild(row);
+      });
+      return wrap;
+    }
+
+    function addMessage(type, text, meta = "", faq = null) {
+      const row = document.createElement("div");
+      row.className = `message ${type}`;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      if (faq && faq.answerType === "account") {
+        bubble.textContent = `${faq.service} 계정 정보는 아래 내용 참고하시면 됩니다.`;
+        bubble.appendChild(makeAccountCard(faq));
+        const warn = document.createElement("div");
+        warn.className = "meta";
+        warn.textContent = "보안상 계정 정보는 사내 구성원에게만 공유해주세요.";
+        bubble.appendChild(warn);
+      } else {
+        bubble.textContent = text;
+        if (meta && type === "bot") {
+          const metaEl = document.createElement("div");
+          metaEl.className = "meta";
+          metaEl.textContent = meta;
+          bubble.appendChild(metaEl);
+        }
+      }
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function ask(question) {
+      const cleanQuestion = question.trim();
+      if (!cleanQuestion) return;
+      showView("homeView");
+      addMessage("user", cleanQuestion);
+      const result = findBestAnswer(cleanQuestion);
+      setTimeout(() => addMessage("bot", result.answer, result.meta, result.faq), 120);
+    }
+
+    function showView(viewId) {
+      document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+      document.getElementById(viewId).classList.add("active");
+      navButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.view === viewId));
+    }
+
+    function renderOttTable(targetId, keyword = "", limit = null) {
+      const table = document.getElementById(targetId);
+      const q = normalize(keyword);
+      let rows = ottData.filter(item => !q || normalize(`${item.service} ${item.id} ${item.aliases.join(" ")}`).includes(q));
+      if (limit) rows = rows.slice(0, limit);
+      table.innerHTML = `
+        <thead><tr><th>서비스</th><th>아이디</th><th>비밀번호</th></tr></thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector("tbody");
+      rows.forEach(item => {
+        const tr = document.createElement("tr");
+        [item.service, item.id, item.password].forEach(value => {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderFaqList(keyword = "") {
+      const list = document.getElementById("faqList");
+      const q = normalize(keyword);
+      const rows = faqData.filter(item => {
+        const categoryOk = selectedCategory === "전체" || item.category === selectedCategory;
+        const text = normalize(`${item.category} ${item.question} ${item.answer} ${item.aliases.join(" ")}`);
+        return categoryOk && (!q || text.includes(q));
+      });
+      list.innerHTML = "";
+      rows.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "faq-item";
+        const answer = item.answerType === "account" ? `아이디: ${item.id}\n비밀번호: ${item.password}` : item.answer;
+        div.innerHTML = `<span class="badge"></span><div class="faq-item-title"></div><div class="faq-item-answer"></div>`;
+        div.querySelector(".badge").textContent = item.category;
+        div.querySelector(".faq-item-title").textContent = item.question;
+        div.querySelector(".faq-item-answer").textContent = answer;
+        list.appendChild(div);
+      });
+    }
+
+    function renderCategoryGrid() {
+      const grid = document.getElementById("categoryGrid");
+      const categories = [...new Set(faqData.map(item => item.category))];
+      grid.innerHTML = "";
+      categories.forEach(category => {
+        const count = faqData.filter(item => item.category === category).length;
+        const card = document.createElement("div");
+        card.className = "category-card";
+        card.innerHTML = `<div class="category-card-title"></div><div class="category-card-count"></div>`;
+        card.querySelector(".category-card-title").textContent = category;
+        card.querySelector(".category-card-count").textContent = `${count}개 FAQ 등록`;
+        card.addEventListener("click", () => {
+          selectedCategory = category;
+          categoryButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.category === category));
+          renderFaqList(faqSearch.value);
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      ask(input.value);
+      input.value = "";
+      input.focus();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      messagesEl.innerHTML = "";
+      addMessage("bot", "안녕하세요. 클라이맥스 사내 FAQ 챗봇입니다.\n궁금한 내용을 편하게 입력해주세요.\n\n예: 넷플릭스 계정 알려줘 / 5층 와이파이 비번? / 마스터카드 어디 있어요?", "내부 테스트용 v1.2");
+    });
+
+    navButtons.forEach(button => button.addEventListener("click", () => showView(button.dataset.view)));
+
+    categoryButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        categoryButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+        selectedCategory = button.dataset.category;
+        showView("faqView");
+        renderFaqList(faqSearch.value);
+      });
+    });
+
+    quickItems.forEach(button => button.addEventListener("click", () => ask(button.textContent)));
+    faqSearch.addEventListener("input", () => renderFaqList(faqSearch.value));
+    ottSearch.addEventListener("input", () => renderOttTable("ottFullTable", ottSearch.value));
+
+    renderOttTable("homeOttTable", "", 8);
+    renderOttTable("ottFullTable");
+    renderCategoryGrid();
+    renderFaqList();
+    addMessage("bot", "안녕하세요. 클라이맥스 사내 FAQ 챗봇입니다.\n궁금한 내용을 편하게 입력해주세요.\n\n예: 넷플릭스 계정 알려줘 / 5층 와이파이 비번? / 마스터카드 어디 있어요?", "내부 테스트용 v1.2");
+  </script>
+</body>
+</html>
