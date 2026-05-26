@@ -77,11 +77,25 @@
       padding: 10px 14px;
     }
 
-    .logo-box img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
+    .text-logo {
+      background: rgba(255,255,255,0.98);
+    }
+
+    .logo-text {
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      color: var(--climax-purple);
+      font-size: 20px;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .logo-text small {
       display: block;
+      font-size: 9px;
+      letter-spacing: 0.45em;
+      margin-top: 7px;
+      padding-left: 4px;
     }
 
     header h1 {
@@ -187,8 +201,8 @@
     }
 
     .workspace {
+      height: calc(100vh - 170px);
       min-height: 690px;
-      max-height: calc(100vh - 170px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -198,6 +212,8 @@
       display: none;
       padding: 22px;
       flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .view.active { display: block; }
@@ -207,6 +223,7 @@
       grid-template-columns: 1fr 360px;
       gap: 18px;
       height: 100%;
+      min-height: 0;
     }
 
     .chat-card, .info-card, .faq-card {
@@ -220,8 +237,8 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      height: calc(100vh - 230px);
-      min-height: 560px;
+      height: 100%;
+      min-height: 0;
     }
 
     .messages {
@@ -512,8 +529,8 @@
   <div class="app">
     <header>
       <div class="brand-row">
-        <div class="logo-box">
-          <img src="data:image/jpeg;base64,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" alt="CLIMAX STUDIO 로고" />
+        <div class="logo-box text-logo">
+          <div class="logo-text">CLIMAX<small>STUDIO</small></div>
         </div>
         <div>
           <h1>클라이맥스 사내 FAQ 챗봇</h1>
@@ -878,3 +895,4 @@
   </script>
 </body>
 </html>
+
